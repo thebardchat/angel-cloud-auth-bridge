@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aggregate-pricer"
+version = "1.0.0"
+authors = [
+  { name="Shane", email="shane@example.com" },
+]
+description = "A tool to parse, analyze, and serve aggregate pricing data from a CSV file."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = [
+    # No dependencies required for the core CLI tool
+]
+
+[project.optional-dependencies]
+api = [
+    "Flask",
+    "Flask-Cors",
+    "gunicorn",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/example/aggregate-pricer"
+"Bug Tracker" = "https://github.com/example/aggregate-pricer/issues"
+
+# This section creates the command-line tool.
+# It maps the command name "aggregate-pricer" to the "main" function in the "main" module.
+[project.scripts]
+aggregate-pricer = "main:main"
+
+[tool.setuptools]
+py-modules = ["data_parser", "main"]

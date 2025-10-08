@@ -1,0 +1,49 @@
+# Aggregate Pricer
+
+A tool to parse, analyze, and serve aggregate pricing data from a CSV file. This project includes a command-line interface (CLI) for direct data queries and a Flask-based web API to serve data to a web dashboard.
+
+## Features
+
+- **CSV Parsing**: Robustly parses complex aggregate pricing CSV files.
+- **Data Analysis**: Calculates total costs, including surcharges and delivery, and finds the cheapest options.
+- **Filtering**: Filters products by location name or number.
+- **Command-Line Interface**: An interactive CLI for querying product prices.
+- **Web API**: A Flask server to expose the parsed data via a JSON endpoint.
+
+## Installation
+
+To install the project and its command-line tool, navigate to the project's root directory and run:
+
+```bash
+# This installs the project in "editable" mode, which is great for development.
+pip install -e .
+```
+
+To include the dependencies for running the web API, install the `api` extras:
+
+```bash
+pip install -e ".[api]"
+```
+
+## Usage
+
+### Command-Line Tool
+
+Once installed, you can use the `aggregate-pricer` command from anywhere in your terminal.
+
+```bash
+# Example: Find the cheapest option for 10 tons from a specific CSV file.
+aggregate-pricer "path/to/your/data.csv" --tons 10
+
+# Example: Find the cheapest option at the "Cherokee" location, including delivery.
+aggregate-pricer "data.csv" --tons 20 --location-name Cherokee --include-delivery --account-holder
+```
+
+### Web API
+
+To run the web server, first ensure you have installed the `api` dependencies, then run:
+
+```bash
+python api.py
+```
+The API will be available at `http://127.0.0.1:5001`.
