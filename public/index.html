@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angel Cloud Welcome Center - SSO & Security</title>
+    <style>
+        /* Base styles inspired by your initial console aesthetic */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1e1e1e; /* Dark, technical background */
+            color: #d4d4d4; /* Light grey text */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: #252526; /* Slightly lighter background for the container */
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #3c3c3c;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 2em;
+            color: #61dafb; /* A blue color for emphasis */
+        }
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        input {
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #4a4a4a;
+            background: #333333;
+            color: white;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #61dafb;
+        }
+        input::placeholder {
+            color: #888888;
+        }
+        button {
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        #register-btn {
+            background: #2ecc71; /* Green for success/new */
+            color: white;
+        }
+        #login-btn {
+            background: #3498db; /* Blue for login/action */
+            color: white;
+        }
+        #wallet-btn {
+            background: #f6851b; /* Orange/Pulsar color */
+            color: white;
+        }
+        .status-message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9em;
+            display: none;
+        }
+        .status-success { background: #1a5e37; color: #b7e3c9; }
+        .status-error { background: #7b2a2a; color: #ffcccc; }
+
+        .feature-list {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #3c3c3c;
+        }
+        .feature-list h3 {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #f1c40f; /* Yellow for attention */
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .feature-icon {
+            margin-right: 8px;
+            color: #61dafb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Angel Cloud</h1>
+        <p class="subtitle">Authentication Bridge (Port 3005)</p>
+        
+        <div class="auth-form">
+            <input type="text" id="name" placeholder="Your Name" />
+            <input type="email" id="email" placeholder="Email Address" />
+            <input type="password" id="password" placeholder="Master Password" />
+            
+            <button id="register-btn" onclick="register()">✅ Create Secure Account (Register)</button>
+            <button id="login-btn" onclick="login()">🔑 Single Sign-On (SSO) Login</button>
+            <button id="wallet-btn" onclick="connectWallet()">🦊 Connect Pulsar AI (Blockchain Verify)</button>
+        </div>
+
+        <div id="message" class="status-message"></div>
+
+        <div class="feature-list">
+            <h3>Active Core Security:</h3>
+            <div class="feature-item">
+                <span class="feature-icon">🧠</span>
+                <span>Legacy AI Vault Protection (Encrypted Data)</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔐</span>
+                <span>Pulsar Blockchain Verification Ready</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">👨‍👩‍👧‍👦</span>
+                <span>Family-First Legacy Authentication</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AUTH_BRIDGE_URL = 'http://localhost:3005/api/auth';
+        const PULSAR_URL = 'http://localhost:3005/api/pulsar';
+        let currentUser = { userId: null };
+
+        function showMessage(text, isSuccess) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.style.display = 'block';
+            msg.className = 'status-message ' + (isSuccess ? 'status-success' : 'status-error');
+        }
+
+        async function register() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password || !name) {
+                showMessage('Missing Name, Email, or Master Password.', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${AUTH_BRIDGE_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, name, legacyName: `${name}Brain` })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    currentUser.userId = data.userId;
+                    localStorage.setItem('angelAuthToken', data.authToken);
+                    showMessage(`Success! ${data.message} Your User ID is now tracked.`, true);
+                } else {
+                    showMessage(data.error || 'Registration failed.', false);
+                }
+            } catch (error) {
+                showMessage('Server connection failed.', false);
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showMessage('Please enter email and password for SSO.', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${AUTH_BRIDGE_URL}/sso-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    currentUser.userId = data.userId;
+                    localStorage.setItem('angelSSOToken', data.ssoToken);
+                    showMessage(`SSO SUCCESS! Welcome back. Access granted to all services.`, true);
+                } else {
+                    showMessage(data.error || 'SSO Login Failed.', false);
+                }
+            } catch (error) {
+                showMessage('Server connection failed.', false);
+            }
+        }
+
+        async function connectWallet() {
+            if (!currentUser.userId) {
+                showMessage('Please REGISTER or LOG IN first to link your Pulsar Wallet.', false);
+                return;
+            }
+
+            if (typeof window.ethereum === 'undefined') {
+                showMessage('MetaMask not detected. Please install the wallet extension to use Pulsar Security.', false);
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const address = accounts[0];
+                
+                const message = 'Connect to Pulsar AI Security Bridge for Angel Cloud Legacy Vault';
+                
+                // Request signature from the user's wallet
+                const signature = await window.ethereum.request({
+                    method: 'personal_sign',
+                    params: [message, address]
+                });
+
+                // Send data to the Authentication Bridge for verification
+                const response = await fetch(`${PULSAR_URL}/verify-blockchain`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        address,
+                        signature,
+                        message,
+                        userId: currentUser.userId
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Pulsar Security Verified! Your Legacy AI is now blockchain-secured.', true);
+                } else {
+                    showMessage(`Pulsar Verification Failed: ${data.error}`, false);
+                }
+            } catch (error) {
+                console.error(error);
+                showMessage(`Wallet Error: Authentication rejected or network failed.`, false);
+            }
+        }
+
+        // Attempt to load existing user ID from local storage on page load
+        window.onload = () => {
+             const token = localStorage.getItem('angelAuthToken');
+             if (token) {
+                 // In a real app, we'd validate the token against the server here.
+                 // For now, we assume a token exists if one was set.
+             }
+        };
+    </script>
+</body>
+</html>

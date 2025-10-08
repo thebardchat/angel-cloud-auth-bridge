@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shanebrain: Angel Cloud Mega Dashboard</title>
+    <style>
+        /* Base Styles for a Clean, High-Tech Look */
+        :root {
+            --angel-blue: #007bff; /* Primary color */
+            --angel-dark: #2c3e50; /* Background color */
+            --angel-light: #ecf0f1; /* Card background */
+            --angel-text: #ffffff; /* Text color */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--angel-dark);
+            color: var(--angel-text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        /* Header (Shanebrain Title) */
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px 30px;
+            text-align: center;
+            border-bottom: 2px solid var(--angel-blue);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            color: var(--angel-blue);
+            font-weight: 300;
+        }
+        .header p {
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        /* Main Content Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            padding: 25px;
+            flex-grow: 1;
+        }
+
+        /* Dashboard Card Component */
+        .card {
+            background-color: var(--angel-dark);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: var(--angel-blue);
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--angel-blue);
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        /* Haul Rate Module Specific Styling */
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .input-group label {
+            text-align: left;
+            font-size: 0.9em;
+            flex-grow: 1;
+        }
+        .input-group input[type="number"], .input-group select {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #7f8c8d;
+            color: black;
+            width: 100px;
+            text-align: center;
+        }
+        .input-group input[type="text"] {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #7f8c8d;
+            color: black;
+            width: 170px;
+        }
+        #materialSelect {
+            width: 170px;
+        }
+        .calculate-btn {
+            background-color: var(--angel-blue);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .calculate-btn:hover {
+            background-color: #0056b3;
+        }
+        /* Highlight for Optimal Plant */
+        .optimal-plant-highlight {
+            border: 2px solid #2ecc71 !important;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.5) !important;
+        }
+
+        .status-light {
+            float: right;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-top: 8px;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+        .status-light.online { background-color: #2ecc71; }
+        .status-light.pending { background-color: #f39c12; }
+        .status-light.error { background-color: #e74c3c; }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+
+    </style>
+</head>
+<body> 
+
+    <div class="header">
+        <h1>Shanebrain: Angel Cloud Command Center</h1>
+        <p>Unified Management for Legacy, Logistics, and Wellness</p>
+    </div>
+
+    <div class="dashboard-grid">
+        
+        <div class="card" id="legacy-ai-card">
+            <span class="status-light online"></span>
+            <h2>Angel Cloud / Shanebrain (AI Core)</h2>
+            <div id="angel-cloud-status">
+                <p><strong>Status:</strong> Legacy AI operational. Ready for deep context analysis.</p>
+                <p><strong>Next Action:</strong> Delegate a task using voice mode or text.</p>
+            </div>
+        </div>
+        
+        <div class="card" id="logistics-card">
+            <span class="status-light error"></span>
+            <h2>Logistics & Quoting System</h2>
+            <div id="haul-rate-module">
+                <p>Calculates most profitable plant, allowing for selection override.</p>
+                
+                <div class="input-group">
+                    <label for="deliveryAddress">Delivery Address:</label>
+                    <input type="text" id="deliveryAddress" value="700 Aviation Dr SW, HSV" oninput="calculateFinalQuote()">
+                </div>
+
+                <div class="input-group">
+                    <label for="locationSelect">Filter by Location:</label>
+                    <select id="locationSelect" onchange="onLocationChange()"></select>
+                </div>
+
+                <div class="input-group">
+                    <label for="roundTripMinutes">Delivery Time (Minutes):</label>
+                    <input type="number" id="roundTripMinutes" value="75" min="1" oninput="calculateFinalQuote()">
+                    <span style="font-size: 0.8em; color: #f39c12; margin-left: 10px; width: 60px;">*API Sim</span>
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateFinalQuote()">Find Optimal Quote</button>
+                
+                <h3 style="margin-top: 20px; color: #61dafb;">MIN. PROFITABLE HAUL RATE:</h3>
+                <p id="haulRateResult" style="font-size: 1.2em; color: #2ecc71; font-weight: bold; margin-bottom: 5px;">$0.00 / ton</p>
+                
+                <h3 style="color: #61dafb;">TOTAL DELIVERY PRICE:</h3>
+                <p id="totalPriceResult" style="font-size: 2em; color: #e74c3c; font-weight: bold;">$0.00</p>
+                <p id="quoteBreakdown" style="font-size: 0.8em; color: #bdc3c7; margin-top: 5px;">(Breakdown)</p>
+            </div>
+        </div>
+
+        <div class="card" id="family-card">
+            <span class="status-light online"></span>
+            <h2>Family First Automation Engine</h2>
+            <div id="calendar-module">
+                <p><strong>Automation Status:</strong> Automated text/email system ready.</p>
+                <p>Next: Sync to-do lists and schedules.</p>
+            </div>
+        </div>
+
+        <div class="card" id="security-card">
+            <span class="status-light error"></span>
+            <h2>Pulsar AI Blockchain Security</h2>
+            <div id="pulsar-module">
+                <p>Defender Agents monitoring network traffic and file integrity.</p>
+                <button onclick="alert('Connect MetaMask Wallet');">Verify Wallet SSO</button>
+            </div>
+        </div>
+
+    </div>
+    
+    <script>
+        // This will hold the data fetched from our Python API
+        let AllLocations = [];
+
+        // --- DATA FETCHING AND TRANSFORMATION ---
+        async function fetchAllProducts(locationName = null) {
+            let apiUrl = 'http://127.0.0.1:5001/api/products';
+            if (locationName) {
+                // Append the location_name as a query parameter if one is provided
+                apiUrl += `?location_name=${encodeURIComponent(locationName)}`;
+            }
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const productsFromApi = await response.json();
+
+                // On initial load, extract all unique locations for the filter dropdown
+                if (!locationName) {
+                    const locationNames = new Set(productsFromApi.map(p => p.location_name).filter(Boolean));
+                    AllLocations = [...locationNames];
+                }
+                
+            } catch (error) {
+                console.error("Failed to fetch or process product data:", error);
+                document.getElementById('quoteBreakdown').textContent = "Error: Could not load data from the API.";
+            }
+        }
+
+        // Function to populate the new location filter dropdown
+        function populateLocationDropdown() {
+            const select = document.getElementById('locationSelect');
+            select.innerHTML = '';
+
+            const allOption = document.createElement('option');
+            allOption.textContent = "All Locations";
+            allOption.value = "ALL";
+            select.appendChild(allOption);
+
+            AllLocations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = option.textContent = location;
+                select.appendChild(option);
+            });
+        }
+
+        // Function to populate the material dropdown list
+        function populateMaterialDropdown() {
+            const select = document.getElementById('materialSelect');
+            select.innerHTML = ''; 
+            
+            const placeholder = document.createElement('option');
+            placeholder.textContent = "Auto-Selected Optimal Plant";
+            placeholder.value = "AUTO";
+            select.appendChild(placeholder);
+            
+            MaterialPrices.forEach(material => {
+                const option = document.createElement('option');
+                option.value = material.id;
+                option.textContent = material.name;
+                select.appendChild(option);
+            });
+            select.selectedIndex = 0;
+        }
+
+        // Event handler for when the location filter changes
+        async function onLocationChange() {
+            const locationSelect = document.getElementById('locationSelect');
+            const selectedLocation = locationSelect.value === "ALL" ? null : locationSelect.value;
+            
+            await fetchAndProcessData(selectedLocation); // Re-fetch data with the filter
+            populateMaterialDropdown(); // Repopulate materials
+            calculateFinalQuote(); // Recalculate the quote
+        }
+
+        // Haul Rate Logic: Rounds up to nearest $0.50, starting at a minimum of $6.00
+        function calculateHaulRate(minutes, tons) {
+            const HOURLY_RATE = 130; 
+            const MINIMUM_RATE = 6.0;
+            
+            let haulRatePerTon = (HOURLY_RATE / 60) * (minutes / tons);
+
+            let finalHaulRate;
+            if (haulRatePerTon <= MINIMUM_RATE) {
+                finalHaulRate = MINIMUM_RATE;
+            } else {
+                finalHaulRate = Math.ceil(haulRatePerTon * 2) / 2;
+            }
+            return finalHaulRate;
+        }
+
+        // Helper function to calculate a single quote
+        function calculateQuoteForMaterial(material, baseMinutes, tons) {
+            const adjustedMinutes = baseMinutes * material.haulMultiplier; 
+            const haulRate = calculateHaulRate(adjustedMinutes, tons);
+            const totalCostPerTon = material.price + haulRate;
+            return totalCostPerTon * tons * (1 + material.taxRate);
+        }
+
+        // Master function to find the optimal plant or calculate the selected plant
+        function calculateFinalQuote() {
+            const select = document.getElementById('materialSelect');
+            const totalMinutes = parseFloat(document.getElementById('roundTripMinutes').value) || 0;
+            const totalTons = 25; // Standardize all quotes to 25 tons.
+            const deliveryAddress = document.getElementById('deliveryAddress').value.trim(); // Use .trim() to check for actual input
+            const selectedOption = select.value;
+            const logisticsCard = document.getElementById('logistics-card');
+
+            logisticsCard.classList.remove('optimal-plant-highlight');
+
+            // Input Validation - Improved for clarity
+            if (totalMinutes <= 0 || totalTons <= 0 || deliveryAddress === "") {
+                document.getElementById('totalPriceResult').textContent = "$0.00";
+                document.getElementById('quoteBreakdown').textContent = "(Enter address, minutes, and tons)";
+                document.getElementById('haulRateResult').textContent = "$0.00 / ton";
+                logisticsCard.querySelector('.status-light').className = 'status-light error';
+                return;
+            }
+
+            let optimalCost = Infinity;
+            let optimalMaterial = null;
+            let finalMaterial = null;
+
+            // --- 1. Find the OPTIMAL Plant ---
+            if (selectedOption === "AUTO" || !selectedOption) { // Handle initial load where nothing is selected
+                MaterialPrices.forEach(material => {
+                    const totalJobPrice = calculateQuoteForMaterial(material, totalMinutes, totalTons);
+
+                    if (totalJobPrice < optimalCost) {
+                        optimalCost = totalJobPrice;
+                        optimalMaterial = material;
+                    }
+                });
+                finalMaterial = optimalMaterial;
+            } else {
+                // Use the user-selected plant (override)
+                finalMaterial = MaterialPrices.find(m => m.id === parseInt(selectedOption));
+            }
+            
+            if (!finalMaterial) return;
+
+            // --- 2. FINAL QUOTE CALCULATION for the chosen material ---
+            
+            const finalAdjustedMinutes = totalMinutes * finalMaterial.haulMultiplier;
+            const finalHaulRate = calculateHaulRate(finalAdjustedMinutes, totalTons);
+            
+            const materialPrice = finalMaterial.price;
+            const ratePlusMaterial = finalHaulRate + materialPrice;
+            const finalTotalJobPrice = ratePlusMaterial * totalTons * (1 + finalMaterial.taxRate);
+
+
+            // --- 3. UI Update ---
+
+            // Set the dropdown to the automatically selected optimal plant for visual confirmation
+            if (selectedOption === "AUTO" || !selectedOption) {
+                const optimalIndex = MaterialPrices.findIndex(m => m.id === finalMaterial.id);
+                select.selectedIndex = optimalIndex + 1;
+            }
+            
+            // Highlight the card and update display
+            const haulRateDisplay = '$' + finalHaulRate.toFixed(2) + ' / ton';
+            const totalDisplay = '$' + finalTotalJobPrice.toFixed(2);
+            
+            const breakdown = `${finalMaterial.name} selected for ${deliveryAddress}. ($${materialPrice.toFixed(2)} Material + $${finalHaulRate.toFixed(2)} Haul) x ${totalTons} Tons + 9% Tax`;
+
+            document.getElementById('haulRateResult').textContent = haulRateDisplay;
+            document.getElementById('totalPriceResult').textContent = totalDisplay;
+            document.getElementById('quoteBreakdown').textContent = breakdown;
+            logisticsCard.classList.add('optimal-plant-highlight');
+            logisticsCard.querySelector('.status-light').className = 'status-light online';
+        }
+        
+        // Initial setup function using DOMContentLoaded for reliable local execution
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Fetch all data from the Python API on initial load
+            await fetchAndProcessData();
+            
+            // 2. Once data is loaded, populate the UI and run the initial calculation
+            if (MaterialPrices.length > 0) {
+                populateLocationDropdown();
+                populateMaterialDropdown();
+                calculateFinalQuote();
+            }
+        });
+    </script>
+</body>
+</html>

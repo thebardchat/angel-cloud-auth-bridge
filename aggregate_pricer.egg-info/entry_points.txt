@@ -1,0 +1,2 @@
+[console_scripts]
+aggregate-pricer = main:main
