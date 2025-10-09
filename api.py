@@ -2,8 +2,8 @@ import logging
 from dataclasses import asdict
 from decimal import Decimal
 
-from flask import Flask, jsonify
-from flask_cors import CORS, request
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 
 from data_parser import DataParser
 
