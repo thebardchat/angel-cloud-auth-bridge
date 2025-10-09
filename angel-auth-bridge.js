@@ -23,8 +23,7 @@ app.use(express.json());
 
 // --- ENVIRONMENT CONFIGURATION (ROBUST KEY CHECK) ---
 const ENV_FILE = path.join(__dirname, '.env');
-// ... (omitted .env setup for brevity, assume it's loaded)
-dotenv.config({ path: ENV_FILE });
+dotenv.config({ path: ENV_FILE, override: true }); // Ensure .env is loaded and can override existing env vars
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const PULSAR_API_KEY = process.env.PULSAR_API_KEY;

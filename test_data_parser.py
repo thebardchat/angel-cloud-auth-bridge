@@ -1,6 +1,7 @@
 import unittest
 import os
 import logging
+import csv
 from decimal import Decimal
 from data_parser import DataParser, Product
 
@@ -10,16 +11,16 @@ class TestDataParser(unittest.TestCase):
         """Set up a test CSV file and the parser instance."""
         self.parser = DataParser(surcharge=Decimal('0.10'))
         self.test_csv_path = "test_data.csv"
-        # Create a dummy CSV file for testing
-        with open(self.test_csv_path, "w", newline="", encoding="utf-8") as f:
-            f.write('"Plant,or,Quarry Name/Type/Location Number",Address,Product,Non-Account Holder Price Per Ton,Account Holder Price Per Ton,Delivery Cost Per Ton Added in If We Are Hauling\n') # Header
-            f.write('"Cherokee/Rock Quarry/594","40 Sutton Hill Rd, Cherokee, AL 35616","#89 Stone","$20.00","$19.00","$2.50"\n') # Standard row
-            f.write('"Lacey\'s Spring/Rock Quarry/71501","105 Vaughn Rd, Laceys Spring, AL 35754","Fill Dirt","$50.00 per load","$50.00 per load","CALL"\n') # Delivery is CALL
-            f.write('"Cherokee/Rock Quarry/594","40 Sutton Hill Rd, Cherokee, AL 35616","8910s","CALL","CALL","3.00"\n') # Base price is CALL
-            f.write('"Monteagle/Sand Quarry/71087","15878 Sewanee Hwy, TN 37375","1 1/2""","24.00","$23.00","N/A"\n') # Delivery is N/A
-            f.write('"Incomplete/Location","Some Address","Cheap Stone","$10.00","$9.00","$15.00"\n') # Cheapest base price, highest delivery,
-            f.write("\n") # Empty line
-            f.write('"Lacey\'s Spring/Rock Quarry/71501","105 Vaughn Rd, Laceys Spring, AL 35754",,,,,,\n') # Malformed/empty data row
+        with open(self.test_csv_path, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Plant,or,Quarry Name/Type/Location Number", "Address", "Product", "Non-Account Holder Price Per Ton", "Account Holder Price Per Ton", "Delivery Cost Per Ton Added in If We Are Hauling"])
+            writer.writerow(["Cherokee/Rock Quarry/594", "40 Sutton Hill Rd, Cherokee, AL 35616", "#89 Stone", "$20.00", "$19.00", "$2.50"])
+            writer.writerow(["Lacey's Spring/Rock Quarry/71501", "105 Vaughn Rd, Laceys Spring, AL 35754", "Fill Dirt", "$50.00 per load", "$50.00 per load", "CALL"])
+            writer.writerow(["Cherokee/Rock Quarry/594", "40 Sutton Hill Rd, Cherokee, AL 35616", "8910s", "CALL", "CALL", "3.00"])
+            writer.writerow(["Monteagle/Sand Quarry/71087", "15878 Sewanee Hwy, TN 37375", "1 1/2\"", "24.00", "$23.00", "N/A"])
+            writer.writerow(["Incomplete/Location", "Some Address", "Cheap Stone", "$10.00", "$9.00", "$15.00"])
+            writer.writerow([]) # Empty line
+            writer.writerow(["Lacey's Spring/Rock Quarry/71501", "105 Vaughn Rd, Laceys Spring, AL 35754", "", "", "", ""]) # Malformed/empty data row
 
     def tearDown(self):
         """Clean up the test CSV file."""
