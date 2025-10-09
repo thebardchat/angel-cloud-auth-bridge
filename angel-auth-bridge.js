@@ -2,7 +2,7 @@
 // Purpose: Unifies Legacy AI, Pulsar Security, SSO, and the Dispatch Calculator.
 
 const express = require('express');
-const crypto = require require('crypto');
+const crypto = require('crypto');
 const { ethers } = require('ethers');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
