@@ -34,4 +34,3 @@ aggregate-pricer = "main:main"
 
 [tool.setuptools]
 py-modules = ["data_parser", "main", "api"]
-package-dir = {"" = "src"}
