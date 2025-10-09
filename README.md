@@ -32,11 +32,11 @@ pip install -e ".[api]"
 Once installed, you can use the `aggregate-pricer` command from anywhere in your terminal.
 
 ```bash
-# Example: Find the cheapest option for 10 tons from a specific CSV file.
-aggregate-pricer "path/to/your/data.csv" --tons 10
+# Example: Find the cheapest option (for 25 tons) from a specific CSV file.
+aggregate-pricer "path/to/your/data.csv"
 
 # Example: Find the cheapest option at the "Cherokee" location, including delivery.
-aggregate-pricer "data.csv" --tons 20 --location-name Cherokee --include-delivery --account-holder
+aggregate-pricer "data.csv" --location-name Cherokee --include-delivery --account-holder
 ```
 
 ### Web API
