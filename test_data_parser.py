@@ -2,8 +2,8 @@ import unittest
 import os
 import logging
 from decimal import Decimal
-from data_parser import DataParser
-from data_parser import Product
+from data_parser import DataParser, Product
+
 class TestDataParser(unittest.TestCase):
 
     def setUp(self):
@@ -29,7 +29,7 @@ class TestDataParser(unittest.TestCase):
     def test_parse_csv_file_not_found(self):
         """Test that an error is logged when the CSV file is not found."""
         # Use assertLogs to capture and check log output
-        with self.assertLogs('src.data_parser', level='ERROR') as cm:
+        with self.assertLogs('data_parser', level='ERROR') as cm:
             result = self.parser.parse_csv("non_existent_file.csv")
             self.assertEqual(result, [])
             self.assertIn("File not found", cm.output[0])
@@ -178,7 +178,7 @@ class TestDataParser(unittest.TestCase):
 
     def test_logging_on_bad_price(self):
         """Test that a warning is logged for unparseable price strings."""
-        with self.assertLogs('src.data_parser', level='WARNING') as cm:
+        with self.assertLogs('data_parser', level='WARNING') as cm:
             # The _clean_price method is internal, so we test it via the public parse_csv
             self.parser._clean_price("Invalid Price")
             self.assertIn("Could not parse price string to Decimal: 'Invalid Price'", cm.output[0])
