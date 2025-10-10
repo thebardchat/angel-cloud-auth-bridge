@@ -75,7 +75,7 @@
             padding-bottom: 10px;
         }
 
-        /* Haul Rate Module Specific Styling */
+        /* Quoting System Styling */
         .input-group {
             margin-bottom: 15px;
             display: flex;
@@ -87,23 +87,21 @@
             font-size: 0.9em;
             flex-grow: 1;
         }
-        .input-group input[type="number"], .input-group select {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #7f8c8d;
-            color: black;
-            width: 100px;
-            text-align: center;
-        }
-        .input-group input[type="text"] {
+        .input-group input[type="text"], .input-group select {
             padding: 8px;
             border-radius: 5px;
             border: 1px solid #7f8c8d;
             color: black;
             width: 170px;
+            text-align: left;
         }
-        #materialSelect {
+        .input-group input[type="number"] {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #7f8c8d;
+            color: black;
             width: 170px;
+            text-align: left;
         }
         .calculate-btn {
             background-color: var(--angel-blue);
@@ -171,19 +169,23 @@
                 <p>Calculates most profitable plant, allowing for selection override.</p>
                 
                 <div class="input-group">
-                    <label for="deliveryAddress">Delivery Address:</label>
-                    <input type="text" id="deliveryAddress" value="700 Aviation Dr SW, HSV" oninput="calculateFinalQuote()">
+                    <label for="deliveryDestinationSelect">Delivery Destination:</label>
+                    <select id="deliveryDestinationSelect" onchange="calculateFinalQuote()"></select>
                 </div>
 
                 <div class="input-group">
-                    <label for="locationSelect">Filter by Location:</label>
-                    <select id="locationSelect" onchange="onLocationChange()"></select>
+                    <label for="materialSelect">Select Material/Plant:</label>
+                    <select id="materialSelect" onchange="calculateFinalQuote()"></select>
                 </div>
-
+                
                 <div class="input-group">
-                    <label for="roundTripMinutes">Delivery Time (Minutes):</label>
-                    <input type="number" id="roundTripMinutes" value="75" min="1" oninput="calculateFinalQuote()">
-                    <span style="font-size: 0.8em; color: #f39c12; margin-left: 10px; width: 60px;">*API Sim</span>
+                    <label for="materialTons">Load Size (Tons):</label>
+                    <input type="number" id="materialTons" value="25" min="1" oninput="calculateFinalQuote()">
+                </div>
+                
+                <div class="input-group">
+                    <label for="calculatedMinutes">Calculated RTT:</label>
+                    <input type="text" id="calculatedMinutes" value="0 min" readonly>
                 </div>
                 
                 <button class="calculate-btn" onclick="calculateFinalQuote()">Find Optimal Quote</button>
@@ -210,7 +212,7 @@
             <span class="status-light error"></span>
             <h2>Pulsar AI Blockchain Security</h2>
             <div id="pulsar-module">
-                <p>Defender Agents monitoring network traffic and file integrity. (SSO Required)</p>
+                <p>Defender Agents monitoring network traffic and file integrity.</p>
                 <button onclick="alert('Connect MetaMask Wallet');">Verify Wallet SSO</button>
             </div>
         </div>
@@ -218,190 +220,134 @@
     </div>
     
     <script>
-        // This will hold the data fetched from our Python API
-        let AllLocations = [];
+        // --- CORE DATA STRUCTURES (Placeholder until fetched) ---
+        let AllProducts = []; // Will store the full list of products/quarries
+        
+        // Target delivery sites (These are hardcoded destinations based on the API's Distance Matrix)
+        const DeliveryLocations = [
+            { id: "D_HSV_AVIA", name: "Huntsville Aviation Dr (HSV Target)" },
+            { id: "D_DECA_SITEA", name: "Decatur Industrial Site A (DECA Center)" },
+            { id: "D_FLOR_B", name: "Florence Jobsite B (FLOR Target)" }
+        ];
 
-        // --- DATA FETCHING AND TRANSFORMATION ---
-        async function fetchAllProducts(locationName = null) {
-            let apiUrl = 'http://127.0.0.1:5001/api/products';
-            if (locationName) {
-                // Append the location_name as a query parameter if one is provided
-                apiUrl += `?location_name=${encodeURIComponent(locationName)}`;
-            }
+        // --- FETCHING AND POPULATING UI ---
 
+        async function fetchProductsAndInitialize() {
+            const apiUrl = 'http://127.0.0.1:5001/api/products';
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`API Not Running or HTTP Error: ${response.status}`);
                 }
-                const productsFromApi = await response.json();
-
-                // On initial load, extract all unique locations for the filter dropdown
-                if (!locationName) {
-                    const locationNames = new Set(productsFromApi.map(p => p.location_name).filter(Boolean));
-                    AllLocations = [...locationNames];
-                }
+                AllProducts = await response.json();
+                populateMaterialDropdown();
+                calculateFinalQuote();
                 
             } catch (error) {
-                console.error("Failed to fetch or process product data:", error);
-                document.getElementById('quoteBreakdown').textContent = "Error: Could not load data from the API.";
+                console.error("API Connection Error. Please run python quoter.py in your terminal.", error);
+                document.getElementById('quoteBreakdown').textContent = `API ERROR: Please ensure python quoter.py is running.`;
+                document.getElementById('logistics-card').querySelector('.status-light').className = 'status-light error';
             }
         }
-
-        // Function to populate the new location filter dropdown
+        
+        // Function to populate the delivery dropdown
         function populateLocationDropdown() {
-            const select = document.getElementById('locationSelect');
-            select.innerHTML = '';
-
-            const allOption = document.createElement('option');
-            allOption.textContent = "All Locations";
-            allOption.value = "ALL";
-            select.appendChild(allOption);
-
-            AllLocations.forEach(location => {
+            const deliverySelect = document.getElementById('deliveryDestinationSelect');
+            deliverySelect.innerHTML = '';
+            DeliveryLocations.forEach(location => {
                 const option = document.createElement('option');
-                option.value = option.textContent = location;
-                select.appendChild(option);
+                option.value = location.id;
+                option.textContent = location.name;
+                deliverySelect.appendChild(option);
             });
         }
-
-        // Function to populate the material dropdown list
+        
+        // Function to populate the material dropdown list using fetched data
         function populateMaterialDropdown() {
-            const select = document.getElementById('materialSelect');
-            select.innerHTML = ''; 
+            const materialSelect = document.getElementById('materialSelect');
+            materialSelect.innerHTML = ''; 
             
-            const placeholder = document.createElement('option');
-            placeholder.textContent = "Auto-Selected Optimal Plant";
-            placeholder.value = "AUTO";
-            select.appendChild(placeholder);
+            const autoOption = document.createElement('option');
+            autoOption.textContent = "Auto-Selected Optimal Plant";
+            autoOption.value = "AUTO";
+            materialSelect.appendChild(autoOption);
             
-            MaterialPrices.forEach(material => {
+            AllProducts.forEach(material => {
                 const option = document.createElement('option');
                 option.value = material.id;
                 option.textContent = material.name;
-                select.appendChild(option);
+                materialSelect.appendChild(option);
             });
-            select.selectedIndex = 0;
+            materialSelect.selectedIndex = 0;
         }
 
-        // Event handler for when the location filter changes
-        async function onLocationChange() {
-            const locationSelect = document.getElementById('locationSelect');
-            const selectedLocation = locationSelect.value === "ALL" ? null : locationSelect.value;
+        // --- MASTER QUOTING FUNCTION (Client-side) ---
+
+        async function calculateFinalQuote() {
+            const materialSelect = document.getElementById('materialSelect');
+            const deliverySelect = document.getElementById('deliveryDestinationSelect');
+            const totalTons = parseFloat(document.getElementById('materialTons').value) || 0;
             
-            await fetchAndProcessData(selectedLocation); // Re-fetch data with the filter
-            populateMaterialDropdown(); // Repopulate materials
-            calculateFinalQuote(); // Recalculate the quote
-        }
-
-        // Haul Rate Logic: Rounds up to nearest $0.50, starting at a minimum of $6.00
-        function calculateHaulRate(minutes, tons) {
-            const HOURLY_RATE = 130; 
-            const MINIMUM_RATE = 6.0;
-            
-            let haulRatePerTon = (HOURLY_RATE / 60) * (minutes / tons);
-
-            let finalHaulRate;
-            if (haulRatePerTon <= MINIMUM_RATE) {
-                finalHaulRate = MINIMUM_RATE;
-            } else {
-                finalHaulRate = Math.ceil(haulRatePerTon * 2) / 2;
-            }
-            return finalHaulRate;
-        }
-
-        // Helper function to calculate a single quote
-        function calculateQuoteForMaterial(material, baseMinutes, tons) {
-            const adjustedMinutes = baseMinutes * material.haulMultiplier; 
-            const haulRate = calculateHaulRate(adjustedMinutes, tons);
-            const totalCostPerTon = material.price + haulRate;
-            return totalCostPerTon * tons * (1 + material.taxRate);
-        }
-
-        // Master function to find the optimal plant or calculate the selected plant
-        function calculateFinalQuote() {
-            const select = document.getElementById('materialSelect');
-            const totalMinutes = parseFloat(document.getElementById('roundTripMinutes').value) || 0;
-            const totalTons = 25; // Standardize all quotes to 25 tons.
-            const deliveryAddress = document.getElementById('deliveryAddress').value.trim(); // Use .trim() to check for actual input
-            const selectedOption = select.value;
+            const destinationId = deliverySelect.value;
+            const selectedMaterialId = materialSelect.value;
             const logisticsCard = document.getElementById('logistics-card');
 
             logisticsCard.classList.remove('optimal-plant-highlight');
 
-            // Input Validation - Improved for clarity
-            if (totalMinutes <= 0 || totalTons <= 0 || deliveryAddress === "") {
+            // Input Validation
+            if (totalTons <= 0 || !destinationId) {
+                document.getElementById('calculatedMinutes').value = "Error";
                 document.getElementById('totalPriceResult').textContent = "$0.00";
-                document.getElementById('quoteBreakdown').textContent = "(Enter address, minutes, and tons)";
-                document.getElementById('haulRateResult').textContent = "$0.00 / ton";
+                document.getElementById('quoteBreakdown').textContent = "(Enter tons and select destination)";
                 logisticsCard.querySelector('.status-light').className = 'status-light error';
                 return;
             }
 
-            let optimalCost = Infinity;
-            let optimalMaterial = null;
-            let finalMaterial = null;
+            // Construct API URL
+            const apiUrl = new URL('http://127.0.0.1:5001/api/quote');
+            apiUrl.searchParams.append('destination', destinationId);
+            apiUrl.searchParams.append('tons', totalTons);
+            apiUrl.searchParams.append('material_id', selectedMaterialId);
 
-            // --- 1. Find the OPTIMAL Plant ---
-            if (selectedOption === "AUTO" || !selectedOption) { // Handle initial load where nothing is selected
-                MaterialPrices.forEach(material => {
-                    const totalJobPrice = calculateQuoteForMaterial(material, totalMinutes, totalTons);
+            try {
+                const response = await fetch(apiUrl);
+                const quoteData = await response.json();
 
-                    if (totalJobPrice < optimalCost) {
-                        optimalCost = totalJobPrice;
-                        optimalMaterial = material;
+                if (response.ok) {
+                    // Success: Update UI with final quote data
+                    const finalMaterial = AllProducts.find(p => p.id === quoteData.product_id);
+                    const destinationName = DeliveryLocations.find(d => d.id === destinationId).name;
+
+                    document.getElementById('calculatedMinutes').value = quoteData.rtt_minutes + " min";
+                    document.getElementById('haulRateResult').textContent = `$${quoteData.haul_rate_per_ton.toFixed(2)} / ton`;
+                    document.getElementById('totalPriceResult').textContent = `$${quoteData.total_job_price.toFixed(2)}`;
+                    document.getElementById('quoteBreakdown').textContent = `${quoteData.plant} selected for ${destinationName}. ${quoteData.breakdown}`;
+
+                    // Auto-select the optimal choice in the dropdown for confirmation
+                    if (selectedMaterialId === "AUTO") {
+                         materialSelect.value = quoteData.product_id;
                     }
-                });
-                finalMaterial = optimalMaterial;
-            } else {
-                // Use the user-selected plant (override)
-                finalMaterial = MaterialPrices.find(m => m.id === parseInt(selectedOption));
+
+                    logisticsCard.classList.add('optimal-plant-highlight');
+                    logisticsCard.querySelector('.status-light').className = 'status-light online';
+
+                } else {
+                    // API returned error (e.g., No quote found)
+                    document.getElementById('quoteBreakdown').textContent = `Quote Error: ${quoteData.error || 'No quote found for this plant.'}`;
+                    logisticsCard.querySelector('.status-light').className = 'status-light error';
+                }
+
+            } catch (error) {
+                console.error("Fetch failed (API down?):", error);
+                document.getElementById('quoteBreakdown').textContent = "Connection Failed. Is python quoter.py running?";
+                logisticsCard.querySelector('.status-light').className = 'status-light error';
             }
-            
-            if (!finalMaterial) return;
-
-            // --- 2. FINAL QUOTE CALCULATION for the chosen material ---
-            
-            const finalAdjustedMinutes = totalMinutes * finalMaterial.haulMultiplier;
-            const finalHaulRate = calculateHaulRate(finalAdjustedMinutes, totalTons);
-            
-            const materialPrice = finalMaterial.price;
-            const ratePlusMaterial = finalHaulRate + materialPrice;
-            const finalTotalJobPrice = ratePlusMaterial * totalTons * (1 + finalMaterial.taxRate);
-
-
-            // --- 3. UI Update ---
-
-            // Set the dropdown to the automatically selected optimal plant for visual confirmation
-            if (selectedOption === "AUTO" || !selectedOption) {
-                const optimalIndex = MaterialPrices.findIndex(m => m.id === finalMaterial.id);
-                select.selectedIndex = optimalIndex + 1;
-            }
-            
-            // Highlight the card and update display
-            const haulRateDisplay = '$' + finalHaulRate.toFixed(2) + ' / ton';
-            const totalDisplay = '$' + finalTotalJobPrice.toFixed(2);
-            
-            const breakdown = `${finalMaterial.name} selected for ${deliveryAddress}. ($${materialPrice.toFixed(2)} Material + $${finalHaulRate.toFixed(2)} Haul) x ${totalTons} Tons + 9% Tax`;
-
-            document.getElementById('haulRateResult').textContent = haulRateDisplay;
-            document.getElementById('totalPriceResult').textContent = totalDisplay;
-            document.getElementById('quoteBreakdown').textContent = breakdown;
-            logisticsCard.classList.add('optimal-plant-highlight');
-            logisticsCard.querySelector('.status-light').className = 'status-light online';
         }
         
-        // Initial setup function using DOMContentLoaded for reliable local execution
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Fetch all data from the Python API on initial load
-            await fetchAndProcessData();
-            
-            // 2. Once data is loaded, populate the UI and run the initial calculation
-            if (MaterialPrices.length > 0) {
-                populateLocationDropdown();
-                populateMaterialDropdown();
-                calculateFinalQuote();
-            }
+        // Initial setup function
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLocationDropdown();
+            fetchProductsAndInitialize(); 
         });
     </script>
 </body>
