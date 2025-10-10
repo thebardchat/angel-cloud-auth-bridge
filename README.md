@@ -1,49 +1,65 @@
-# Aggregate Pricer
+# Angel Cloud Auth Bridge
 
-A tool to parse, analyze, and serve aggregate pricing data from a CSV file. This project includes a command-line interface (CLI) for direct data queries and a Flask-based web API to serve data to a web dashboard.
-
-## Features
-
-- **CSV Parsing**: Robustly parses complex aggregate pricing CSV files.
-- **Data Analysis**: Calculates total costs, including surcharges and delivery, and finds the cheapest options.
-- **Filtering**: Filters products by location name or number.
-- **Command-Line Interface**: An interactive CLI for querying product prices.
-- **Web API**: A Flask server to expose the parsed data via a JSON endpoint.
+A Flask-based authentication bridge for Angel Cloud. This service proxies authentication requests to the Angel Cloud API, handling API key authentication on behalf of the client.
 
 ## Installation
 
-To install the project and its command-line tool, navigate to the project's root directory and run:
+To install the project and its dependencies, navigate to the project's root directory and run:
 
 ```bash
-# This installs the project in "editable" mode, which is great for development.
 pip install -e .
-```
-
-To include the dependencies for running the web API, install the `api` extras:
-
-```bash
-pip install -e ".[api]"
 ```
 
 ## Usage
 
-### Command-Line Tool
-
-Once installed, you can use the `aggregate-pricer` command from anywhere in your terminal.
-
-```bash
-# Example: Find the cheapest option (for 25 tons) from a specific CSV file.
-aggregate-pricer "path/to/your/data.csv"
-
-# Example: Find the cheapest option at the "Cherokee" location, including delivery.
-aggregate-pricer "data.csv" --location-name Cherokee --include-delivery --account-holder
-```
-
 ### Web API
 
-To run the web server, first ensure you have installed the `api` dependencies, then run:
+To run the web server, first create a `.env` file in the root of the project with the following content:
+
+```
+ANGEL_CLOUD_API_KEY=your_api_key
+ANGEL_CLOUD_BASE_URL=https://api.angel-cloud.dev
+```
+
+Then, run the following command:
 
 ```bash
 python api.py
 ```
-The API will be available at `http://127.0.0.1:5001`.
+
+The API will be available at `http://127.0.0.1:3005`.
+
+### Endpoints
+
+#### POST /auth/token
+
+This endpoint proxies the request to the Angel Cloud `/auth/token` endpoint.
+
+**Request Body:**
+
+```json
+{
+    "username": "your_username",
+    "password": "your_password"
+}
+```
+
+**Response:**
+
+The response from the Angel Cloud API is forwarded to the client.
+
+#### POST /auth/validate
+
+This endpoint proxies the request to the Angel Cloud `/auth/validate` endpoint.
+
+**Request Body:**
+
+```json
+{
+    "token": "your_token"
+}
+```
+
+**Response:**
+
+The response from the Angel Cloud API is forwarded to the client.

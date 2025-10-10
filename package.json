@@ -2,10 +2,10 @@
   "name": "angel-cloud-authentication-bridge",
   "version": "1.0.0",
   "description": "The unified Single Sign-On and security bridge for the entire Angel Cloud AI ecosystem.",
-  "main": "angel-auth-bridge-fixed.js",
+  "main": "angel-auth-bridge.js",
   "scripts": {
-    "start": "node angel-auth-bridge-fixed.js",
-    "dev": "nodemon angel-auth-bridge-fixed.js",
+    "start": "node angel-auth-bridge.js",
+    "dev": "nodemon angel-auth-bridge.js",
     "test": "jest",
     "install-all": "npm install && npm audit fix"
   },
